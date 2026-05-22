@@ -2,11 +2,9 @@
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /build
 
-# Копіюємо pom.xml та завантажуємо залежності в кеш
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Копіюємо код і збираємо JAR
 COPY src ./src
 RUN mvn clean package -DskipTests
 
@@ -14,11 +12,10 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Створюємо безпечного користувача
 RUN addgroup -S botgroup && adduser -S botuser -G botgroup
 
-# Копіюємо результат збірки
-COPY --from=builder /build/target/*-jar-with-dependencies.jar app.jar
+# Оновлений рядок, який чітко бере твій зібраний JAR
+COPY --from=builder /build/target/AboutPython-1.0-SNAPSHOT.jar app.jar
 
 USER botuser
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseContainerSupport"
