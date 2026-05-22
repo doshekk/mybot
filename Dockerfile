@@ -1,32 +1,39 @@
-# Копіюємо файли конфігурації та сирцевий код
-# Копіюємо файли конфігурації та сирцевий код
+# =====================================================================
+# ЕТАП 1: Збірка проекту (Тут Render сам скачає Maven і збере твій JAR)
+# =====================================================================
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+
+WORKDIR /build
+
+# КЕШУВАННЯ ЗАЛЕЖНОСТЕЙ: Спочатку копіюємо тільки pom.xml.
+# Це дозволить Docker не скачувати всі бібліотеки заново, якщо ти змінив лише код.
 COPY pom.xml .
-COPY pom.xml .
-COPY src ./src
+RUN mvn dependency:go-offline -B
+
+# Копіюємо вихідний код проекту
 COPY src ./src
 
-
-# Компілюємо проект всередині контейнера
-# Компілюємо проект всередині контейнера
-RUN mvn clean package -DskipTests
+# Збираємо проект у fat-jar (пропускаємо тести, щоб збірка була швидкою)
 RUN mvn clean package -DskipTests
 
-
-# Крок 2: Легковаговий образ для запуску
-# Крок 2: Легковаговий образ для запуску
+# =====================================================================
+# ЕТАП 2: Фінальний образ (Тут залишається тільки Java і твій готовий бот)
+# =====================================================================
 FROM eclipse-temurin:21-jre-alpine
-FROM eclipse-temurin:21-jre-alpine
+
 WORKDIR /app
-WORKDIR /app
 
+# Створюємо безпечного користувача, щоб бот не запускався від імені root (найкраща практика)
+RUN addgroup -S botgroup && adduser -S botuser -G botgroup
 
-# Копіюємо зібраний JAR-файл з першого кроку
-# Копіюємо зібраний JAR-файл з першого кроку
-COPY --from=build /app/target/*-jar-with-dependencies.jar app.jar
-COPY --from=build /app/target/*-jar-with-dependencies.jar app.jar
+# Копіюємо зібраний JAR-файл з Етапу 1 (builder) і перейменовуємо в app.jar
+COPY --from=builder /build/target/*-jar-with-dependencies.jar app.jar
 
+# Перемикаємось на безпечного користувача
+USER botuser
 
-# Команда запуску
-# Команда запуску
-CMD ["java", "-jar", "app.jar"]
-CMD ["java", "-jar", "app.jar"]
+# Оптимальні налаштування пам'яті для Java в Docker-контейнерах
+ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseContainerSupport"
+
+# Команда для запуску бота
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
