@@ -19,7 +19,7 @@ RUN addgroup -S botgroup && adduser -S botuser -G botgroup
 COPY --from=builder /build/target/AboutPython-1.0-SNAPSHOT-jar-with-dependencies.jar app.jar
 
 # Зміна-маркер для примусового скидання кешу Railway (2026-05-22)
-RUN echo "Force cache bust v2"
+RUN echo "Force cache bust v3"
 
 USER botuser
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseContainerSupport"
