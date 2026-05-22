@@ -15,7 +15,6 @@
     <maven.compiler.release>17</maven.compiler.release>
   </properties>
 
-  <!-- Блокування вразливості Jackson (WS-2026-0003) -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -44,7 +43,6 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Основні два модулі Telegram API версії 9.5.0 -->
     <dependency>
       <groupId>org.telegram</groupId>
       <artifactId>telegrambots-client</artifactId>
@@ -60,7 +58,6 @@
 
   <build>
     <plugins>
-      <!-- Плагін для збірки JAR з усіма залежностями (Fat JAR) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -68,7 +65,6 @@
         <configuration>
           <archive>
             <manifest>
-              <!-- Шлях до твого головного класу -->
               <mainClass>org.example.PythonOopQuizBot</mainClass>
             </manifest>
           </archive>
